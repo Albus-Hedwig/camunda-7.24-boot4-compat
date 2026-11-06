@@ -1,5 +1,7 @@
 # Camunda 7.24 + Spring Boot 4.1 compatibility patches
 
+[![patch-check](https://github.com/Albus-Hedwig/camunda-7.24-boot4-compat/actions/workflows/patch-check.yml/badge.svg)](https://github.com/Albus-Hedwig/camunda-7.24-boot4-compat/actions/workflows/patch-check.yml)
+
 Unofficial patch set that makes **Camunda BPM Platform 7.24.0 (community edition)** work with
 **Spring Boot 4.1.x** on **Java 21**.
 
