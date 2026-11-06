@@ -1,0 +1,32 @@
+name: patch-check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out patch repository
+        uses: actions/checkout@v4
+
+      - name: Check out upstream Camunda 7.24.0
+        run: |
+          git clone --depth 1 --branch 7.24.0 \
+            https://github.com/camunda/camunda-bpm-platform.git upstream
+
+      - name: Apply patch series
+        run: |
+          cd upstream
+          for patch in ../patches/*.patch; do
+            echo "Applying $patch"
+            git apply --check "$patch"
+            git apply "$patch"
+          done

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/Albus-Hedwig/camunda-7.24-boot4-compat/security/advisories/new
+    about: Report vulnerabilities privately. Do not open a public issue.
+  - name: Camunda upstream project
+    url: https://github.com/camunda/camunda-bpm-platform
+    about: Upstream Camunda 7.24.0 source and project information.

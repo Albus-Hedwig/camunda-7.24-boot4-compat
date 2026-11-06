@@ -1,0 +1,241 @@
+From d94f7708b42d2c86134a2d9f09d8c2ec4fb6bc56 Mon Sep 17 00:00:00 2001
+From: Albus-Hedwig <albus-hedwig@users.noreply.github.com>
+Date: Thu, 5 Nov 2026 20:15:45 +0800
+Subject: [PATCH] Boot 4.1: compile core starter modules (main sources)
+
+---
+ .../rest/CamundaBpmRestInitializer.java       |  2 +-
+ ...CamundaBpmRestJerseyAutoConfiguration.java |  4 +-
+ ...SpringSecurityOAuth2AutoConfiguration.java |  6 +--
+ .../impl/ClientsConfiguredCondition.java      | 47 +++++++++++++++++++
+ .../impl/ClientsNotConfiguredCondition.java   |  9 ++--
+ .../CamundaBpmActuatorConfiguration.java      |  2 +-
+ .../starter/CamundaBpmAutoConfiguration.java  |  2 +-
+ .../actuator/JobExecutorHealthIndicator.java  |  4 +-
+ .../ProcessEngineHealthIndicator.java         |  4 +-
+ .../JobExecutorHealthIndicatorTest.java       |  4 +-
+ .../ProcessEngineHealthIndicatorTest.java     |  4 +-
+ 11 files changed, 67 insertions(+), 21 deletions(-)
+ create mode 100644 spring-boot-starter/starter-security/src/main/java/org/camunda/bpm/spring/boot/starter/security/oauth2/impl/ClientsConfiguredCondition.java
+
+diff --git a/spring-boot-starter/starter-rest/src/main/java/org/camunda/bpm/spring/boot/starter/rest/CamundaBpmRestInitializer.java b/spring-boot-starter/starter-rest/src/main/java/org/camunda/bpm/spring/boot/starter/rest/CamundaBpmRestInitializer.java
+index a03d4a47..1f262a5e 100644
+--- a/spring-boot-starter/starter-rest/src/main/java/org/camunda/bpm/spring/boot/starter/rest/CamundaBpmRestInitializer.java
++++ b/spring-boot-starter/starter-rest/src/main/java/org/camunda/bpm/spring/boot/starter/rest/CamundaBpmRestInitializer.java
+@@ -21,7 +21,7 @@ import org.camunda.bpm.engine.rest.filter.EmptyBodyFilter;
+ import org.camunda.bpm.spring.boot.starter.property.CamundaBpmProperties;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+-import org.springframework.boot.autoconfigure.web.servlet.JerseyApplicationPath;
++import org.springframework.boot.jersey.autoconfigure.JerseyApplicationPath;
+ import org.springframework.boot.web.servlet.ServletContextInitializer;
+ 
+ import jakarta.servlet.DispatcherType;
+diff --git a/spring-boot-starter/starter-rest/src/main/java/org/camunda/bpm/spring/boot/starter/rest/CamundaBpmRestJerseyAutoConfiguration.java b/spring-boot-starter/starter-rest/src/main/java/org/camunda/bpm/spring/boot/starter/rest/CamundaBpmRestJerseyAutoConfiguration.java
+index af03cc41..d2b6af4a 100644
+--- a/spring-boot-starter/starter-rest/src/main/java/org/camunda/bpm/spring/boot/starter/rest/CamundaBpmRestJerseyAutoConfiguration.java
++++ b/spring-boot-starter/starter-rest/src/main/java/org/camunda/bpm/spring/boot/starter/rest/CamundaBpmRestJerseyAutoConfiguration.java
+@@ -22,8 +22,8 @@ import org.camunda.bpm.spring.boot.starter.property.CamundaBpmProperties;
+ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+ import org.springframework.boot.autoconfigure.AutoConfigureBefore;
+ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+-import org.springframework.boot.autoconfigure.jersey.JerseyAutoConfiguration;
+-import org.springframework.boot.autoconfigure.web.servlet.JerseyApplicationPath;
++import org.springframework.boot.jersey.autoconfigure.JerseyAutoConfiguration;
++import org.springframework.boot.jersey.autoconfigure.JerseyApplicationPath;
+ import org.springframework.context.annotation.Bean;
+ 
+ @AutoConfigureBefore({ JerseyAutoConfiguration.class })
+diff --git a/spring-boot-starter/starter-security/src/main/java/org/camunda/bpm/spring/boot/starter/security/oauth2/CamundaSpringSecurityOAuth2AutoConfiguration.java b/spring-boot-starter/starter-security/src/main/java/org/camunda/bpm/spring/boot/starter/security/oauth2/CamundaSpringSecurityOAuth2AutoConfiguration.java
+index 6e882b53..0f12bb59 100644
+--- a/spring-boot-starter/starter-security/src/main/java/org/camunda/bpm/spring/boot/starter/security/oauth2/CamundaSpringSecurityOAuth2AutoConfiguration.java
++++ b/spring-boot-starter/starter-security/src/main/java/org/camunda/bpm/spring/boot/starter/security/oauth2/CamundaSpringSecurityOAuth2AutoConfiguration.java
+@@ -36,8 +36,7 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+ import org.springframework.boot.autoconfigure.AutoConfigureOrder;
+ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+-import org.springframework.boot.autoconfigure.security.SecurityProperties;
+-import org.springframework.boot.autoconfigure.security.oauth2.client.ClientsConfiguredCondition;
++import org.camunda.bpm.spring.boot.starter.security.oauth2.impl.ClientsConfiguredCondition;
+ import org.springframework.boot.context.properties.EnableConfigurationProperties;
+ import org.springframework.boot.web.servlet.FilterRegistrationBean;
+ import org.springframework.context.annotation.Bean;
+@@ -81,7 +80,8 @@ public class CamundaSpringSecurityOAuth2AutoConfiguration {
+     filterRegistration.setInitParameters(Map.of(
+         ProcessEngineAuthenticationFilter.AUTHENTICATION_PROVIDER_PARAM, OAuth2AuthenticationProvider.class.getName()));
+     // make sure the filter is registered after the Spring Security Filter Chain
+-    filterRegistration.setOrder(SecurityProperties.DEFAULT_FILTER_ORDER + 1);
++    // Boot 4 removed SecurityProperties.DEFAULT_FILTER_ORDER; historical security filter order was -100.
++    filterRegistration.setOrder(-99);
+     filterRegistration.addUrlPatterns(webappPath + "/app/*", webappPath + "/api/*");
+     filterRegistration.setDispatcherTypes(DispatcherType.REQUEST);
+     return filterRegistration;
+diff --git a/spring-boot-starter/starter-security/src/main/java/org/camunda/bpm/spring/boot/starter/security/oauth2/impl/ClientsConfiguredCondition.java b/spring-boot-starter/starter-security/src/main/java/org/camunda/bpm/spring/boot/starter/security/oauth2/impl/ClientsConfiguredCondition.java
+new file mode 100644
+index 00000000..7c1887f8
+--- /dev/null
++++ b/spring-boot-starter/starter-security/src/main/java/org/camunda/bpm/spring/boot/starter/security/oauth2/impl/ClientsConfiguredCondition.java
+@@ -0,0 +1,47 @@
++/*
++ * Copyright Camunda Services GmbH and/or licensed to Camunda Services GmbH
++ * under one or more contributor license agreements. See the NOTICE file
++ * distributed with this work for additional information regarding copyright
++ * ownership. Camunda licenses this file to you under the Apache License,
++ * Version 2.0; you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package org.camunda.bpm.spring.boot.starter.security.oauth2.impl;
++
++import java.util.Collections;
++import java.util.Map;
++
++import org.springframework.boot.autoconfigure.condition.ConditionOutcome;
++import org.springframework.boot.autoconfigure.condition.SpringBootCondition;
++import org.springframework.boot.context.properties.bind.Bindable;
++import org.springframework.boot.context.properties.bind.Binder;
++import org.springframework.context.annotation.ConditionContext;
++import org.springframework.core.type.AnnotatedTypeMetadata;
++
++/**
++ * Condition that matches if {@code spring.security.oauth2.client.registration} properties are defined.
++ *
++ * <p>Boot 4 makes the upstream condition package-private, so this fork provides a public equivalent.
++ */
++public class ClientsConfiguredCondition extends SpringBootCondition {
++
++  private static final String REGISTRATION_PREFIX = "spring.security.oauth2.client.registration";
++
++  @Override
++  public ConditionOutcome getMatchOutcome(ConditionContext context, AnnotatedTypeMetadata metadata) {
++    Map<String, Object> registrations = Binder.get(context.getEnvironment())
++        .bind(REGISTRATION_PREFIX, Bindable.mapOf(String.class, Object.class))
++        .orElse(Collections.emptyMap());
++    boolean configured = !registrations.isEmpty();
++    return new ConditionOutcome(configured,
++        "OAuth2 client registrations " + (configured ? "are" : "are not") + " configured");
++  }
++}
+diff --git a/spring-boot-starter/starter-security/src/main/java/org/camunda/bpm/spring/boot/starter/security/oauth2/impl/ClientsNotConfiguredCondition.java b/spring-boot-starter/starter-security/src/main/java/org/camunda/bpm/spring/boot/starter/security/oauth2/impl/ClientsNotConfiguredCondition.java
+index 8c867361..dfd0f659 100644
+--- a/spring-boot-starter/starter-security/src/main/java/org/camunda/bpm/spring/boot/starter/security/oauth2/impl/ClientsNotConfiguredCondition.java
++++ b/spring-boot-starter/starter-security/src/main/java/org/camunda/bpm/spring/boot/starter/security/oauth2/impl/ClientsNotConfiguredCondition.java
+@@ -17,18 +17,17 @@
+ package org.camunda.bpm.spring.boot.starter.security.oauth2.impl;
+ 
+ import org.springframework.boot.autoconfigure.condition.ConditionOutcome;
+-import org.springframework.boot.autoconfigure.security.oauth2.client.ClientsConfiguredCondition;
+ import org.springframework.context.annotation.ConditionContext;
+ import org.springframework.core.type.AnnotatedTypeMetadata;
+ 
+ /**
+- * Condition that matches if no {@code spring.security.oauth2.client.registration} properties are defined
+- * by inverting the outcome of {@link ClientsConfiguredCondition}.
++ * Condition that matches if no {@code spring.security.oauth2.client.registration} properties are defined.
+  */
+ public class ClientsNotConfiguredCondition extends ClientsConfiguredCondition {
++
+   @Override
+   public ConditionOutcome getMatchOutcome(ConditionContext context, AnnotatedTypeMetadata metadata) {
+-    var matchOutcome = super.getMatchOutcome(context, metadata);
+-    return new ConditionOutcome(!matchOutcome.isMatch(), matchOutcome.getConditionMessage());
++    ConditionOutcome outcome = super.getMatchOutcome(context, metadata);
++    return new ConditionOutcome(!outcome.isMatch(), outcome.getConditionMessage());
+   }
+ }
+diff --git a/spring-boot-starter/starter/src/main/java/org/camunda/bpm/spring/boot/starter/CamundaBpmActuatorConfiguration.java b/spring-boot-starter/starter/src/main/java/org/camunda/bpm/spring/boot/starter/CamundaBpmActuatorConfiguration.java
+index f971267b..913b1b85 100644
+--- a/spring-boot-starter/starter/src/main/java/org/camunda/bpm/spring/boot/starter/CamundaBpmActuatorConfiguration.java
++++ b/spring-boot-starter/starter/src/main/java/org/camunda/bpm/spring/boot/starter/CamundaBpmActuatorConfiguration.java
+@@ -20,7 +20,7 @@ import org.camunda.bpm.engine.ProcessEngine;
+ import org.camunda.bpm.engine.impl.jobexecutor.JobExecutor;
+ import org.camunda.bpm.spring.boot.starter.actuator.JobExecutorHealthIndicator;
+ import org.camunda.bpm.spring.boot.starter.actuator.ProcessEngineHealthIndicator;
+-import org.springframework.boot.actuate.health.HealthIndicator;
++import org.springframework.boot.health.contributor.HealthIndicator;
+ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+diff --git a/spring-boot-starter/starter/src/main/java/org/camunda/bpm/spring/boot/starter/CamundaBpmAutoConfiguration.java b/spring-boot-starter/starter/src/main/java/org/camunda/bpm/spring/boot/starter/CamundaBpmAutoConfiguration.java
+index 2b5d94b8..541d304f 100644
+--- a/spring-boot-starter/starter/src/main/java/org/camunda/bpm/spring/boot/starter/CamundaBpmAutoConfiguration.java
++++ b/spring-boot-starter/starter/src/main/java/org/camunda/bpm/spring/boot/starter/CamundaBpmAutoConfiguration.java
+@@ -27,7 +27,7 @@ import org.camunda.bpm.spring.boot.starter.util.CamundaBpmVersion;
+ import org.springframework.beans.factory.annotation.Autowired;
+ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+-import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
++import org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration;
+ import org.springframework.boot.context.properties.EnableConfigurationProperties;
+ import org.springframework.context.ApplicationEventPublisher;
+ import org.springframework.context.annotation.Bean;
+diff --git a/spring-boot-starter/starter/src/main/java/org/camunda/bpm/spring/boot/starter/actuator/JobExecutorHealthIndicator.java b/spring-boot-starter/starter/src/main/java/org/camunda/bpm/spring/boot/starter/actuator/JobExecutorHealthIndicator.java
+index 23b68920..9e897dc1 100644
+--- a/spring-boot-starter/starter/src/main/java/org/camunda/bpm/spring/boot/starter/actuator/JobExecutorHealthIndicator.java
++++ b/spring-boot-starter/starter/src/main/java/org/camunda/bpm/spring/boot/starter/actuator/JobExecutorHealthIndicator.java
+@@ -24,8 +24,8 @@ import java.util.Set;
+ 
+ import org.camunda.bpm.engine.impl.ProcessEngineImpl;
+ import org.camunda.bpm.engine.impl.jobexecutor.JobExecutor;
+-import org.springframework.boot.actuate.health.AbstractHealthIndicator;
+-import org.springframework.boot.actuate.health.Health.Builder;
++import org.springframework.boot.health.contributor.AbstractHealthIndicator;
++import org.springframework.boot.health.contributor.Health.Builder;
+ 
+ public class JobExecutorHealthIndicator extends AbstractHealthIndicator {
+ 
+diff --git a/spring-boot-starter/starter/src/main/java/org/camunda/bpm/spring/boot/starter/actuator/ProcessEngineHealthIndicator.java b/spring-boot-starter/starter/src/main/java/org/camunda/bpm/spring/boot/starter/actuator/ProcessEngineHealthIndicator.java
+index ffb7be10..ddcfb032 100644
+--- a/spring-boot-starter/starter/src/main/java/org/camunda/bpm/spring/boot/starter/actuator/ProcessEngineHealthIndicator.java
++++ b/spring-boot-starter/starter/src/main/java/org/camunda/bpm/spring/boot/starter/actuator/ProcessEngineHealthIndicator.java
+@@ -17,8 +17,8 @@
+ package org.camunda.bpm.spring.boot.starter.actuator;
+ 
+ import org.camunda.bpm.engine.ProcessEngine;
+-import org.springframework.boot.actuate.health.AbstractHealthIndicator;
+-import org.springframework.boot.actuate.health.Health.Builder;
++import org.springframework.boot.health.contributor.AbstractHealthIndicator;
++import org.springframework.boot.health.contributor.Health.Builder;
+ import org.springframework.util.Assert;
+ 
+ public class ProcessEngineHealthIndicator extends AbstractHealthIndicator {
+diff --git a/spring-boot-starter/starter/src/test/java/org/camunda/bpm/spring/boot/starter/actuator/JobExecutorHealthIndicatorTest.java b/spring-boot-starter/starter/src/test/java/org/camunda/bpm/spring/boot/starter/actuator/JobExecutorHealthIndicatorTest.java
+index c31cb501..554e7899 100644
+--- a/spring-boot-starter/starter/src/test/java/org/camunda/bpm/spring/boot/starter/actuator/JobExecutorHealthIndicatorTest.java
++++ b/spring-boot-starter/starter/src/test/java/org/camunda/bpm/spring/boot/starter/actuator/JobExecutorHealthIndicatorTest.java
+@@ -31,8 +31,8 @@ import org.junit.Test;
+ import org.junit.runner.RunWith;
+ import org.mockito.Mock;
+ import org.mockito.junit.MockitoJUnitRunner;
+-import org.springframework.boot.actuate.health.Health;
+-import org.springframework.boot.actuate.health.Status;
++import org.springframework.boot.health.contributor.Health;
++import org.springframework.boot.health.contributor.Status;
+ 
+ @RunWith(MockitoJUnitRunner.class)
+ public class JobExecutorHealthIndicatorTest {
+diff --git a/spring-boot-starter/starter/src/test/java/org/camunda/bpm/spring/boot/starter/actuator/ProcessEngineHealthIndicatorTest.java b/spring-boot-starter/starter/src/test/java/org/camunda/bpm/spring/boot/starter/actuator/ProcessEngineHealthIndicatorTest.java
+index 58e01931..8109ec17 100644
+--- a/spring-boot-starter/starter/src/test/java/org/camunda/bpm/spring/boot/starter/actuator/ProcessEngineHealthIndicatorTest.java
++++ b/spring-boot-starter/starter/src/test/java/org/camunda/bpm/spring/boot/starter/actuator/ProcessEngineHealthIndicatorTest.java
+@@ -24,8 +24,8 @@ import org.junit.Test;
+ import org.junit.runner.RunWith;
+ import org.mockito.Mock;
+ import org.mockito.junit.MockitoJUnitRunner;
+-import org.springframework.boot.actuate.health.Health;
+-import org.springframework.boot.actuate.health.Status;
++import org.springframework.boot.health.contributor.Health;
++import org.springframework.boot.health.contributor.Status;
+ 
+ @RunWith(MockitoJUnitRunner.class)
+ public class ProcessEngineHealthIndicatorTest {
+-- 
+2.43.0
+

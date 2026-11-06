@@ -1,0 +1,32 @@
+name: Question
+description: Ask about build, usage, or compatibility
+title: "[Question]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for build or usage questions. For reproducible defects, use the bug report
+        template instead. Do not include credentials or internal hostnames.
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: What are you trying to do, and where are you stuck?
+    validations:
+      required: true
+
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: Camunda, Spring Boot, Java, database, and patch-set version
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Relevant configuration, sanitized logs, and what you have tried

@@ -1,0 +1,34 @@
+From 0ce09480a27f8e28de815a26ce073ff44e16ab16 Mon Sep 17 00:00:00 2001
+From: Albus-Hedwig <albus-hedwig@users.noreply.github.com>
+Date: Thu, 5 Nov 2026 19:51:05 +0800
+Subject: [PATCH] Boot 4.1.2 baseline: bump Spring Boot and Jakarta EE BOM
+
+---
+ parent/pom.xml | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/parent/pom.xml b/parent/pom.xml
+index fc31ff63..2594d0c6 100644
+--- a/parent/pom.xml
++++ b/parent/pom.xml
+@@ -22,7 +22,7 @@
+     <version.quarkus>3.27.0</version.quarkus>
+     <version.spring.framework>5.3.39</version.spring.framework>
+     <version.spring.framework6>6.2.10</version.spring.framework6>
+-    <version.spring-boot>3.5.5</version.spring-boot>
++    <version.spring-boot>4.1.2</version.spring-boot>
+     <version.resteasy>3.15.6.Final</version.resteasy>
+     <version.jersey2>2.34</version.jersey2>
+     <!-- use minimum version of resteasy and jersey -->
+@@ -75,7 +75,7 @@
+     <version.freemarker>2.3.31</version.freemarker>
+ 
+     <version.jboss-javaee-spec>3.0.2.Final</version.jboss-javaee-spec>
+-    <version.jakarta-ee-spec>10.0.0</version.jakarta-ee-spec>
++    <version.jakarta-ee-spec>11.0.0</version.jakarta-ee-spec>
+ 
+     <version.eirslett.frontend.maven.plugin>1.12.1</version.eirslett.frontend.maven.plugin>
+     <version.nodejs>20.14.0</version.nodejs>
+-- 
+2.43.0
+
